@@ -1,7 +1,21 @@
-import { Body, Controller, Delete, Get, Header, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Header,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  Res,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { IUser } from './interfaces/user.interface';
 import { UserDto, UserParamsDto } from './dtos/user.dto';
+import { Request, Response } from 'express';
 
 @Controller('users')
 export class UserController {
@@ -17,8 +31,17 @@ export class UserController {
   @Get(':email')
   @UsePipes(new ValidationPipe())
   @Header('Cache-Control', 'none')
-  getUser(@Param() params: UserParamsDto): IUser {
-    return this.userService.getUser(params.email);
+  getUser(
+    @Param() params: UserParamsDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    try {
+      const userData = this.userService.getUser(params.email);
+      return res.status(HttpStatus.OK).json(userData);
+    } catch (error) {
+      return res.status(HttpStatus.NOT_FOUND).json({ message: error.message });
+    }
   }
 
   //* HTTP POST /users/nv@gmail.com
